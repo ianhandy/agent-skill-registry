@@ -1,0 +1,1462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agent Skill Registry — npm for CLAUDE.md Skills</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg-deep: #1A0D00;
+    --bg: #241200;
+    --bg-card: #2E1800;
+    --bg-card-hover: #3A2000;
+    --gold: #DDC165;
+    --gold-light: #FFE9A3;
+    --gold-dim: #8B7A3E;
+    --orange: #E5591C;
+    --orange-glow: rgba(229, 89, 28, 0.3);
+    --gold-glow: rgba(221, 193, 101, 0.15);
+    --text: #E8DCC8;
+    --text-dim: #9A8B70;
+    --text-faint: #6B5D48;
+    --border: #3A2A15;
+    --border-gold: rgba(221, 193, 101, 0.2);
+    --success: #4ADE80;
+    --radius: 12px;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg-deep);
+    color: var(--text);
+    font-family: 'Inter', -apple-system, sans-serif;
+    line-height: 1.6;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── Ambient background ── */
+  body::before {
+    content: '';
+    position: fixed;
+    top: -50%; left: -50%;
+    width: 200%; height: 200%;
+    background: radial-gradient(ellipse at 30% 20%, rgba(229, 89, 28, 0.06) 0%, transparent 50%),
+                radial-gradient(ellipse at 70% 80%, rgba(221, 193, 101, 0.04) 0%, transparent 50%);
+    animation: ambientDrift 20s ease-in-out infinite alternate;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  @keyframes ambientDrift {
+    0% { transform: translate(0, 0) rotate(0deg); }
+    100% { transform: translate(-3%, 2%) rotate(2deg); }
+  }
+
+  /* ── Header ── */
+  .header {
+    position: relative;
+    z-index: 10;
+    padding: 2rem 2rem 0;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+
+  .header-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .logo-icon {
+    width: 48px; height: 48px;
+    background: linear-gradient(135deg, var(--orange), var(--gold));
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    box-shadow: 0 0 20px var(--orange-glow);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .logo-icon::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, transparent 40%, rgba(255,255,255,0.15));
+    border-radius: inherit;
+  }
+
+  .logo-text h1 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--gold);
+    letter-spacing: -0.5px;
+  }
+
+  .logo-text .tagline {
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    font-weight: 400;
+  }
+
+  .header-stats {
+    display: flex;
+    gap: 1.5rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+  }
+
+  .stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.15rem;
+  }
+
+  .stat-value {
+    color: var(--gold);
+    font-weight: 700;
+    font-size: 1.25rem;
+  }
+
+  .stat-label {
+    color: var(--text-faint);
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  /* ── Hero / Search ── */
+  .hero {
+    position: relative;
+    z-index: 10;
+    max-width: 1400px;
+    margin: 2rem auto 0;
+    padding: 0 2rem;
+  }
+
+  .search-container {
+    position: relative;
+    max-width: 700px;
+    margin: 0 auto;
+  }
+
+  .search-input {
+    width: 100%;
+    padding: 1rem 1.25rem 1rem 3rem;
+    background: var(--bg);
+    border: 1px solid var(--border-gold);
+    border-radius: var(--radius);
+    color: var(--text);
+    font-size: 1rem;
+    font-family: 'JetBrains Mono', monospace;
+    outline: none;
+    transition: all 0.3s;
+  }
+
+  .search-input::placeholder { color: var(--text-faint); }
+
+  .search-input:focus {
+    border-color: var(--gold-dim);
+    box-shadow: 0 0 0 3px var(--gold-glow), 0 0 30px var(--gold-glow);
+  }
+
+  .search-icon {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-faint);
+    font-size: 1.1rem;
+    pointer-events: none;
+  }
+
+  .search-hint {
+    text-align: center;
+    margin-top: 0.5rem;
+    font-size: 0.75rem;
+    color: var(--text-faint);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .search-hint kbd {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 0.1rem 0.4rem;
+    font-size: 0.7rem;
+    color: var(--text-dim);
+  }
+
+  /* ── Filters ── */
+  .filters {
+    position: relative;
+    z-index: 10;
+    max-width: 1400px;
+    margin: 1.5rem auto 0;
+    padding: 0 2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .filter-group {
+    display: flex;
+    gap: 0.35rem;
+    flex-wrap: wrap;
+  }
+
+  .filter-btn {
+    padding: 0.4rem 0.85rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    color: var(--text-dim);
+    font-size: 0.8rem;
+    font-family: 'JetBrains Mono', monospace;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+
+  .filter-btn:hover {
+    border-color: var(--gold-dim);
+    color: var(--gold);
+    background: rgba(221, 193, 101, 0.05);
+  }
+
+  .filter-btn.active {
+    border-color: var(--gold);
+    color: var(--bg-deep);
+    background: var(--gold);
+    font-weight: 600;
+  }
+
+  .filter-sep {
+    width: 1px;
+    height: 24px;
+    background: var(--border);
+    margin: 0 0.5rem;
+  }
+
+  .sort-select {
+    padding: 0.4rem 0.85rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    color: var(--text-dim);
+    font-size: 0.8rem;
+    font-family: 'JetBrains Mono', monospace;
+    cursor: pointer;
+    outline: none;
+    margin-left: auto;
+  }
+
+  .sort-select:focus { border-color: var(--gold-dim); }
+
+  /* ── Grid ── */
+  .grid-container {
+    position: relative;
+    z-index: 10;
+    max-width: 1400px;
+    margin: 1.5rem auto 0;
+    padding: 0 2rem 4rem;
+  }
+
+  .results-info {
+    font-size: 0.8rem;
+    color: var(--text-faint);
+    margin-bottom: 1rem;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+    gap: 1rem;
+  }
+
+  /* ── Skill Card ── */
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.25rem;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--orange), var(--gold), transparent);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .card:hover {
+    border-color: var(--border-gold);
+    background: var(--bg-card-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3), 0 0 20px var(--gold-glow);
+  }
+
+  .card:hover::before { opacity: 1; }
+
+  .card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .card-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--gold-light);
+    line-height: 1.3;
+  }
+
+  .card-author {
+    font-size: 0.75rem;
+    color: var(--text-faint);
+    margin-top: 0.15rem;
+  }
+
+  .card-author a {
+    color: var(--text-dim);
+    text-decoration: none;
+  }
+
+  .card-author a:hover { color: var(--gold); }
+
+  .card-type {
+    flex-shrink: 0;
+    padding: 0.2rem 0.6rem;
+    border-radius: 100px;
+    font-size: 0.65rem;
+    font-weight: 600;
+    font-family: 'JetBrains Mono', monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+  }
+
+  .card-type.skill {
+    background: rgba(221, 193, 101, 0.12);
+    color: var(--gold);
+    border: 1px solid rgba(221, 193, 101, 0.25);
+  }
+
+  .card-type.hook {
+    background: rgba(229, 89, 28, 0.12);
+    color: var(--orange);
+    border: 1px solid rgba(229, 89, 28, 0.25);
+  }
+
+  .card-type.harness {
+    background: rgba(74, 222, 128, 0.1);
+    color: var(--success);
+    border: 1px solid rgba(74, 222, 128, 0.2);
+  }
+
+  .card-type.snippet {
+    background: rgba(147, 130, 220, 0.12);
+    color: #9382DC;
+    border: 1px solid rgba(147, 130, 220, 0.2);
+  }
+
+  .card-desc {
+    font-size: 0.85rem;
+    color: var(--text-dim);
+    line-height: 1.5;
+    margin-bottom: 0.75rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .card-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .tag {
+    padding: 0.15rem 0.5rem;
+    background: rgba(221, 193, 101, 0.06);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    font-size: 0.7rem;
+    color: var(--text-faint);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--border);
+  }
+
+  .card-stats {
+    display: flex;
+    gap: 1rem;
+    font-size: 0.75rem;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--text-faint);
+  }
+
+  .card-stat {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+  }
+
+  .card-stat .icon { font-size: 0.85rem; }
+
+  .install-btn {
+    padding: 0.35rem 0.85rem;
+    background: transparent;
+    border: 1px solid var(--gold-dim);
+    border-radius: 6px;
+    color: var(--gold);
+    font-size: 0.75rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .install-btn:hover {
+    background: var(--gold);
+    color: var(--bg-deep);
+    box-shadow: 0 0 16px var(--gold-glow);
+  }
+
+  /* ── Modal ── */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(8px);
+    z-index: 1000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    animation: fadeIn 0.2s;
+  }
+
+  .modal-overlay.open { display: flex; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  .modal {
+    background: var(--bg);
+    border: 1px solid var(--border-gold);
+    border-radius: 16px;
+    max-width: 720px;
+    width: 100%;
+    max-height: 85vh;
+    overflow-y: auto;
+    box-shadow: 0 24px 80px rgba(0,0,0,0.5), 0 0 40px var(--gold-glow);
+    animation: slideUp 0.25s ease;
+  }
+
+  @keyframes slideUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+
+  .modal-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    padding: 1.5rem 1.5rem 1rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .modal-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--gold-light);
+  }
+
+  .modal-subtitle {
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    margin-top: 0.25rem;
+  }
+
+  .modal-close {
+    background: none;
+    border: none;
+    color: var(--text-faint);
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0.25rem;
+    line-height: 1;
+    transition: color 0.2s;
+  }
+
+  .modal-close:hover { color: var(--gold); }
+
+  .modal-body {
+    padding: 1.5rem;
+  }
+
+  .modal-desc {
+    font-size: 0.9rem;
+    color: var(--text);
+    line-height: 1.7;
+    margin-bottom: 1.25rem;
+  }
+
+  .modal-section {
+    margin-bottom: 1.25rem;
+  }
+
+  .modal-section-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--gold-dim);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 0.5rem;
+  }
+
+  .code-block {
+    background: var(--bg-deep);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.82rem;
+    color: var(--gold-light);
+    line-height: 1.6;
+    overflow-x: auto;
+    position: relative;
+  }
+
+  .code-block .comment { color: var(--text-faint); }
+  .code-block .key { color: var(--orange); }
+  .code-block .val { color: var(--gold); }
+  .code-block .str { color: var(--success); }
+
+  .copy-btn {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    padding: 0.3rem 0.6rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text-faint);
+    font-size: 0.7rem;
+    font-family: 'JetBrains Mono', monospace;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .copy-btn:hover {
+    color: var(--gold);
+    border-color: var(--gold-dim);
+  }
+
+  .modal-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.5rem;
+    border-top: 1px solid var(--border);
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .modal-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+  }
+
+  .modal-install-btn {
+    padding: 0.55rem 1.25rem;
+    background: linear-gradient(135deg, var(--orange), #c44810);
+    border: none;
+    border-radius: 8px;
+    color: white;
+    font-size: 0.85rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 4px 16px rgba(229, 89, 28, 0.3);
+  }
+
+  .modal-install-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 24px rgba(229, 89, 28, 0.4);
+  }
+
+  /* ── Toast ── */
+  .toast {
+    position: fixed;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: var(--bg-card);
+    border: 1px solid var(--gold-dim);
+    border-radius: 8px;
+    padding: 0.75rem 1.25rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+    color: var(--gold);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    z-index: 2000;
+    transition: transform 0.3s ease;
+    pointer-events: none;
+  }
+
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  /* ── Scrollbar ── */
+  ::-webkit-scrollbar { width: 8px; }
+  ::-webkit-scrollbar-track { background: var(--bg-deep); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--gold-dim); }
+
+  /* ── Responsive ── */
+  @media (max-width: 768px) {
+    .header { padding: 1.25rem 1rem 0; }
+    .hero, .filters, .grid-container { padding-left: 1rem; padding-right: 1rem; }
+    .grid { grid-template-columns: 1fr; }
+    .logo-text h1 { font-size: 1.15rem; }
+    .header-stats { gap: 1rem; }
+    .filter-sep { display: none; }
+  }
+
+  /* ── No results ── */
+  .no-results {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: var(--text-faint);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .no-results .icon { font-size: 3rem; margin-bottom: 1rem; display: block; }
+  .no-results h3 { color: var(--text-dim); font-size: 1.1rem; margin-bottom: 0.5rem; }
+  .no-results p { font-size: 0.85rem; }
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-top">
+    <div class="logo">
+      <div class="logo-icon">⚡</div>
+      <div class="logo-text">
+        <h1>agentpkg</h1>
+        <div class="tagline">npm for CLAUDE.md skills</div>
+      </div>
+    </div>
+    <div class="header-stats">
+      <div class="stat">
+        <span class="stat-value" id="totalSkills">0</span>
+        <span class="stat-label">Skills</span>
+      </div>
+      <div class="stat">
+        <span class="stat-value" id="totalAuthors">0</span>
+        <span class="stat-label">Authors</span>
+      </div>
+      <div class="stat">
+        <span class="stat-value" id="totalInstalls">0</span>
+        <span class="stat-label">Installs</span>
+      </div>
+    </div>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="search-container">
+    <span class="search-icon">🔍</span>
+    <input type="text" class="search-input" id="searchInput"
+           placeholder="Search skills, hooks, harnesses..."
+           autocomplete="off" spellcheck="false">
+  </div>
+  <div class="search-hint">
+    <kbd>/</kbd> to focus &nbsp;·&nbsp; <kbd>Esc</kbd> to clear
+  </div>
+</section>
+
+<section class="filters">
+  <div class="filter-group" id="typeFilters">
+    <button class="filter-btn active" data-filter="all">All</button>
+    <button class="filter-btn" data-filter="skill">Skills</button>
+    <button class="filter-btn" data-filter="hook">Hooks</button>
+    <button class="filter-btn" data-filter="harness">Harnesses</button>
+    <button class="filter-btn" data-filter="snippet">Snippets</button>
+  </div>
+  <div class="filter-sep"></div>
+  <div class="filter-group" id="categoryFilters">
+    <button class="filter-btn" data-cat="workflow">Workflow</button>
+    <button class="filter-btn" data-cat="safety">Safety</button>
+    <button class="filter-btn" data-cat="testing">Testing</button>
+    <button class="filter-btn" data-cat="git">Git</button>
+    <button class="filter-btn" data-cat="devops">DevOps</button>
+    <button class="filter-btn" data-cat="ai">AI/LLM</button>
+  </div>
+  <select class="sort-select" id="sortSelect">
+    <option value="popular">Most Popular</option>
+    <option value="newest">Newest</option>
+    <option value="stars">Most Stars</option>
+    <option value="name">A → Z</option>
+  </select>
+</section>
+
+<main class="grid-container">
+  <div class="results-info" id="resultsInfo"></div>
+  <div class="grid" id="skillGrid"></div>
+</main>
+
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal" id="modal"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── Skill Registry Data ──
+const SKILLS = [
+  {
+    name: "commit-guard",
+    title: "Commit Guard",
+    author: "ianhandy",
+    type: "hook",
+    desc: "Pre-commit hook that validates commit messages follow Conventional Commits, prevents force pushes to protected branches, and blocks commits containing secrets or .env files. Catches 94% of accidental credential leaks in CI.",
+    longDesc: "A comprehensive pre-commit safety net for Claude Code. Intercepts every git commit via the PreToolUse hook and validates: commit message format (Conventional Commits), branch protection (no force-push to main/master), secret scanning (regex-based detection of API keys, tokens, passwords in staged files), and file size limits. Configurable via a simple JSON ruleset.",
+    tags: ["git", "safety", "secrets", "conventional-commits"],
+    categories: ["git", "safety"],
+    stars: 847,
+    installs: 12400,
+    updated: "2026-03-18",
+    install: 'agentpkg install ianhandy/commit-guard',
+    snippet: `# .claude/hooks/pre-commit.sh
+# Validates commit messages & blocks secrets
+
+hooks:
+  PreToolUse:
+    - matcher: "Bash"
+      command: |
+        if echo "$INPUT" | grep -qE "git commit";
+        then
+          # Check conventional commits format
+          # Block .env, credentials, API keys
+          node .claude/hooks/commit-guard.js
+        fi`
+  },
+  {
+    name: "scope-fence",
+    title: "Scope Fence",
+    author: "devjameson",
+    type: "hook",
+    desc: "Directory-aware permission boundaries for Claude Code. Define read/write zones per-project so the agent can't accidentally modify files outside its allowed scope. Inspired by Unix file permissions.",
+    longDesc: "Scope Fence adds Unix-style directory permissions to Claude Code sessions. Define which directories are readable, writable, or off-limits. When Claude attempts to read or write outside the allowed scope, the hook intercepts the tool call and returns a clear error. Supports glob patterns, recursive rules, and temporary scope expansion via inline comments.",
+    tags: ["safety", "permissions", "filesystem", "sandboxing"],
+    categories: ["safety"],
+    stars: 1203,
+    installs: 8900,
+    updated: "2026-03-20",
+    install: 'agentpkg install devjameson/scope-fence',
+    snippet: `# CLAUDE.md — Scope Fence Config
+# Only allow modifications in src/ and tests/
+
+scope:
+  writable:
+    - "src/**"
+    - "tests/**"
+    - "package.json"
+  readable:
+    - "**/*"
+  blocked:
+    - ".env*"
+    - "node_modules/"
+    - ".git/"`
+  },
+  {
+    name: "test-on-save",
+    title: "Test on Save",
+    author: "testcraft",
+    type: "hook",
+    desc: "Automatically runs relevant test suites when Claude modifies source files. Maps source files to test files using configurable patterns and only runs affected tests, keeping feedback loops tight.",
+    longDesc: "Watches for file writes via the PostToolUse hook. When a source file is modified, Test on Save identifies the corresponding test file(s) using configurable glob patterns (e.g., src/foo.ts → tests/foo.test.ts) and runs only those tests. Supports Jest, Vitest, Pytest, Go test, and custom runners. Shows pass/fail inline with zero configuration for standard project layouts.",
+    tags: ["testing", "automation", "jest", "vitest", "tdd"],
+    categories: ["testing", "workflow"],
+    stars: 634,
+    installs: 9200,
+    updated: "2026-03-15",
+    install: 'agentpkg install testcraft/test-on-save',
+    snippet: `# PostToolUse hook — run tests on file save
+hooks:
+  PostToolUse:
+    - matcher: "Write|Edit"
+      command: |
+        FILE="$TOOL_INPUT_FILE_PATH"
+        TEST=$(echo "$FILE" | sed 's/src/tests/' \\
+          | sed 's/\\.ts$/.test.ts/')
+        if [ -f "$TEST" ]; then
+          npx vitest run "$TEST" --reporter=verbose
+        fi`
+  },
+  {
+    name: "evo-workflow",
+    title: "Evo Workflow",
+    author: "ianhandy",
+    type: "harness",
+    desc: "Full autonomous agent harness with heartbeat monitoring, session logging, context dump protocol, and keyword-indexed knowledge base. Battle-tested on a 50K-line evolution simulation.",
+    longDesc: "The complete agent harness powering ianhandy's autonomous Claude Code setup. Includes: heartbeat protocol (watchdog kills stale sessions after 5 min), structured session logs with decision rationale, keyword-indexed INDEX.md for cross-session memory, context dump protocol for safe task switching, and Pushover notifications for blockers. Designed for long-running, unsupervised agent sessions.",
+    tags: ["harness", "autonomous", "logging", "watchdog", "production"],
+    categories: ["workflow", "devops"],
+    stars: 2156,
+    installs: 4300,
+    updated: "2026-03-21",
+    install: 'agentpkg install ianhandy/evo-workflow',
+    snippet: `# CLAUDE.md — Evo Workflow Harness
+
+## Heartbeat Protocol
+Write heartbeat every 2 min or watchdog kills you:
+\`./heartbeat.sh "phase" "description"\`
+
+## Session Log Format
+Every session → tasks/repos/{repo}/sessions/
+Update INDEX.md before closing.
+
+## Context Dump Protocol
+Before switching tasks, write:
+- What I know right now
+- What I'm in the middle of
+- What decisions are pending`
+  },
+  {
+    name: "pr-reviewer",
+    title: "PR Reviewer",
+    author: "codeowl",
+    type: "skill",
+    desc: "Structured pull request review skill that analyzes diffs, checks for common anti-patterns, validates test coverage, and produces actionable review comments in a consistent format.",
+    longDesc: "A CLAUDE.md skill that transforms Claude into a thorough PR reviewer. Given a PR URL or branch diff, it: reads all changed files, checks for security vulnerabilities (OWASP top 10), validates that tests cover new code paths, identifies code smells and anti-patterns, and produces structured review comments with severity levels (critical/warning/suggestion). Supports custom rulesets per-project.",
+    tags: ["code-review", "pull-request", "quality", "security"],
+    categories: ["workflow", "safety"],
+    stars: 1834,
+    installs: 15600,
+    updated: "2026-03-19",
+    install: 'agentpkg install codeowl/pr-reviewer',
+    snippet: `# /review-pr skill
+When asked to review a PR:
+1. Read all changed files (git diff)
+2. Check each file for:
+   - Security: injection, XSS, secrets
+   - Quality: complexity, duplication
+   - Tests: coverage of new paths
+3. Output format:
+   ## 🔴 Critical | 🟡 Warning | 🟢 Suggestion
+   **file:line** — description
+   \`\`\`suggestion
+   improved code
+   \`\`\``
+  },
+  {
+    name: "migration-buddy",
+    title: "Migration Buddy",
+    author: "dbstack",
+    type: "skill",
+    desc: "Database migration skill that generates safe, reversible migrations from schema diffs. Supports PostgreSQL, MySQL, and SQLite. Includes rollback scripts and data validation checks.",
+    longDesc: "Analyzes your current database schema and desired state, then generates migration files with: up/down scripts, data validation queries, estimated execution time for large tables, and safety warnings for destructive operations (column drops, type changes). Integrates with Prisma, Drizzle, Knex, and raw SQL workflows.",
+    tags: ["database", "migration", "postgresql", "prisma", "sql"],
+    categories: ["devops"],
+    stars: 723,
+    installs: 5400,
+    updated: "2026-03-12",
+    install: 'agentpkg install dbstack/migration-buddy',
+    snippet: `# /migrate skill
+When asked to create a migration:
+1. Read current schema (prisma/schema.prisma
+   or migrations/ directory)
+2. Compare with requested changes
+3. Generate migration with:
+   - UP: apply changes
+   - DOWN: reversible rollback
+   - VALIDATE: post-migration checks
+4. Warn on destructive ops:
+   ⚠️ Column drop, type narrowing, etc.`
+  },
+  {
+    name: "dep-audit",
+    title: "Dependency Auditor",
+    author: "securecraft",
+    type: "skill",
+    desc: "Scans package.json / requirements.txt / Cargo.toml for known vulnerabilities, outdated packages, and license conflicts. Produces a prioritized action list with fix commands.",
+    longDesc: "A comprehensive dependency health check. Reads your dependency manifest, cross-references with the GitHub Advisory Database and OSV, checks for outdated packages with breaking changes, and flags license incompatibilities (e.g., GPL in an MIT project). Outputs a prioritized list: critical CVEs first, then outdated packages, then license warnings. Includes one-line fix commands for each issue.",
+    tags: ["security", "dependencies", "npm", "pip", "audit"],
+    categories: ["safety", "devops"],
+    stars: 956,
+    installs: 7800,
+    updated: "2026-03-17",
+    install: 'agentpkg install securecraft/dep-audit',
+    snippet: `# /audit-deps skill
+Scan dependencies for vulnerabilities:
+1. Read package.json / requirements.txt
+2. Check against GitHub Advisory DB
+3. Flag: CVEs, outdated, license issues
+4. Output:
+   🔴 CVE-2026-XXXX — package@1.2.3
+      Fix: npm install package@1.2.4
+   🟡 Outdated — lodash@4.17 → 4.18
+   🟠 License — gpl-pkg is GPL in MIT repo`
+  },
+  {
+    name: "doc-gen",
+    title: "Doc Generator",
+    author: "writecraft",
+    type: "skill",
+    desc: "Generates comprehensive API documentation from source code. Reads function signatures, JSDoc/docstrings, and usage patterns to produce clean Markdown docs with examples.",
+    longDesc: "Point it at a module or directory and it produces structured API documentation. Reads TypeScript types, JSDoc comments, Python docstrings, and Go godoc. Infers parameter types from usage when annotations are missing. Generates: function signatures, parameter tables, return types, usage examples (extracted from tests), and cross-references between related functions.",
+    tags: ["documentation", "api", "markdown", "typescript", "jsdoc"],
+    categories: ["workflow"],
+    stars: 1102,
+    installs: 11200,
+    updated: "2026-03-14",
+    install: 'agentpkg install writecraft/doc-gen',
+    snippet: `# /generate-docs skill
+When asked to document code:
+1. Glob for source files in target dir
+2. Parse: exports, function signatures,
+   JSDoc/docstrings, type annotations
+3. Extract examples from test files
+4. Output Markdown:
+   ## functionName(params)
+   Description from docstring
+   | Param | Type | Default |
+   **Example:** from test file`
+  },
+  {
+    name: "git-sage",
+    title: "Git Sage",
+    author: "ianhandy",
+    type: "skill",
+    desc: "Intelligent git workflow skill that understands branching strategies, resolves merge conflicts with context, and generates semantic commit messages from diffs.",
+    longDesc: "Git Sage brings deep git knowledge to Claude Code. It understands GitFlow, trunk-based development, and custom branching strategies. When resolving merge conflicts, it reads both sides of the conflict plus the merge base to make informed decisions. Generates commit messages that follow Conventional Commits and reference related issues. Can also explain complex git histories and suggest rebasing strategies.",
+    tags: ["git", "branching", "merge-conflicts", "commits"],
+    categories: ["git", "workflow"],
+    stars: 1567,
+    installs: 13100,
+    updated: "2026-03-20",
+    install: 'agentpkg install ianhandy/git-sage',
+    snippet: `# /git-sage skill
+Intelligent git operations:
+
+## Commit Messages
+Read diff → generate Conventional Commit:
+  feat(auth): add OAuth2 PKCE flow
+  Implements RFC 7636 for public clients.
+  Closes #142
+
+## Merge Conflicts
+Read both sides + merge base → resolve
+with full semantic understanding.
+
+## Branch Strategy
+Detect: GitFlow | trunk-based | custom
+Suggest: branch names, merge targets`
+  },
+  {
+    name: "env-sync",
+    title: "Env Sync",
+    author: "configdev",
+    type: "snippet",
+    desc: "CLAUDE.md snippet that ensures .env.example stays in sync with .env. Warns when new env vars are added to code but missing from the example file.",
+    longDesc: "A simple but effective CLAUDE.md snippet that watches for environment variable references in source code (process.env.*, os.environ, etc.) and cross-references them with .env.example. When a new variable is used in code but not documented in .env.example, it warns immediately and offers to add it. Prevents the classic 'it works on my machine' env var problem.",
+    tags: ["env", "config", "dotenv", "sync"],
+    categories: ["workflow", "devops"],
+    stars: 412,
+    installs: 6700,
+    updated: "2026-03-10",
+    install: 'agentpkg install configdev/env-sync',
+    snippet: `# Add to CLAUDE.md:
+
+## Environment Variables
+When modifying code that references env vars:
+1. Grep for process.env / os.environ usage
+2. Compare against .env.example
+3. If new var found in code but not in
+   .env.example → add it with a comment
+4. Never commit actual .env files`
+  },
+  {
+    name: "perf-profiler",
+    title: "Performance Profiler",
+    author: "fastdev",
+    type: "skill",
+    desc: "Skill that instruments code with performance measurements, identifies hot paths, and suggests optimizations. Supports Node.js, Python, and browser JavaScript.",
+    longDesc: "Given a function or module, Performance Profiler adds targeted instrumentation to measure execution time, memory allocation, and call frequency. Runs the instrumented code, collects metrics, identifies the slowest paths, and suggests concrete optimizations (caching, lazy loading, algorithm changes). Removes all instrumentation after analysis. Supports console.time, Python cProfile, and Chrome DevTools protocol.",
+    tags: ["performance", "profiling", "optimization", "benchmarks"],
+    categories: ["testing", "workflow"],
+    stars: 589,
+    installs: 3200,
+    updated: "2026-03-08",
+    install: 'agentpkg install fastdev/perf-profiler',
+    snippet: `# /profile skill
+When asked to profile code:
+1. Identify target function/module
+2. Add instrumentation:
+   - Execution time (console.time)
+   - Memory snapshots
+   - Call frequency counters
+3. Run with test data
+4. Report: hot paths, bottlenecks
+5. Suggest: caching, lazy-load, algo
+6. Remove all instrumentation after`
+  },
+  {
+    name: "api-mocker",
+    title: "API Mocker",
+    author: "mocklab",
+    type: "snippet",
+    desc: "CLAUDE.md snippet for generating realistic API mocks from OpenAPI specs. Creates MSW handlers, Playwright fixtures, and test data factories in one pass.",
+    longDesc: "Feed it an OpenAPI spec (or even just a few example API responses) and it generates: MSW (Mock Service Worker) handlers for frontend development, Playwright API fixtures for e2e tests, and test data factories using Faker.js. Handles nested objects, arrays, enums, and nullable fields. Produces TypeScript types alongside mocks for full type safety.",
+    tags: ["api", "mocking", "msw", "testing", "openapi"],
+    categories: ["testing"],
+    stars: 478,
+    installs: 4100,
+    updated: "2026-03-13",
+    install: 'agentpkg install mocklab/api-mocker',
+    snippet: `# Add to CLAUDE.md:
+
+## API Mocking
+When creating API mocks from a spec:
+1. Read OpenAPI spec or example responses
+2. Generate:
+   - MSW handlers (src/mocks/handlers.ts)
+   - Playwright fixtures (tests/fixtures/)
+   - Data factories (tests/factories/)
+3. Include TypeScript types
+4. Use Faker.js for realistic data`
+  },
+  {
+    name: "deploy-check",
+    title: "Deploy Checklist",
+    author: "shipfast",
+    type: "harness",
+    desc: "Pre-deployment verification harness that runs through a configurable checklist: build passes, tests green, env vars set, migrations applied, changelog updated.",
+    longDesc: "A structured pre-deployment gate. Before any deployment action, Deploy Checklist runs through: build succeeds (npm run build / cargo build), all tests pass, required environment variables are set in the target environment, database migrations are up to date, CHANGELOG.md includes an entry for this version, and no TODO/FIXME/HACK comments in changed files. Configurable per-environment (staging vs production).",
+    tags: ["deployment", "ci-cd", "checklist", "verification"],
+    categories: ["devops"],
+    stars: 891,
+    installs: 6200,
+    updated: "2026-03-16",
+    install: 'agentpkg install shipfast/deploy-check',
+    snippet: `# Deploy Checklist Harness
+
+## Pre-deploy verification:
+checks:
+  - name: "Build"
+    run: "npm run build"
+  - name: "Tests"
+    run: "npm test"
+  - name: "Env vars"
+    verify: [DATABASE_URL, API_KEY, ...]
+  - name: "Migrations"
+    run: "prisma migrate status"
+  - name: "Changelog"
+    check: "CHANGELOG.md modified"
+  - name: "No TODOs"
+    run: "grep -r 'TODO\\|FIXME' src/"`
+  },
+  {
+    name: "llm-prompt-test",
+    title: "LLM Prompt Tester",
+    author: "prompteng",
+    type: "skill",
+    desc: "Skill for testing LLM prompts with structured evaluation. Define test cases with expected outputs, run them against your prompts, and get pass/fail reports with semantic similarity scoring.",
+    longDesc: "A testing framework for LLM prompts. Define test cases as input/expected-output pairs with acceptance criteria (exact match, contains, semantic similarity, regex). Run your prompt template against all test cases and get a structured report: pass/fail per case, similarity scores, regression detection (comparing against a baseline run), and cost estimates. Works with Claude, OpenAI, and local models.",
+    tags: ["llm", "prompts", "testing", "evaluation", "ai"],
+    categories: ["ai", "testing"],
+    stars: 1445,
+    installs: 8100,
+    updated: "2026-03-19",
+    install: 'agentpkg install prompteng/llm-prompt-test',
+    snippet: `# /test-prompt skill
+Test LLM prompts systematically:
+
+test_cases:
+  - input: "Summarize this article..."
+    expect:
+      contains: ["key point 1", "key point 2"]
+      max_tokens: 200
+      tone: "professional"
+  - input: "Translate to French..."
+    expect:
+      lang: "fr"
+      semantic_match: 0.85
+
+Run → Report: 12/14 passed (85.7%)`
+  },
+  {
+    name: "monorepo-nav",
+    title: "Monorepo Navigator",
+    author: "megarepo",
+    type: "snippet",
+    desc: "CLAUDE.md snippet that helps Claude understand monorepo structure. Maps packages to owners, defines dependency boundaries, and prevents cross-package imports that violate architecture.",
+    longDesc: "Essential for large monorepos. This snippet teaches Claude your monorepo's package boundaries, ownership model, and allowed dependency graph. Prevents accidental cross-package imports, suggests the correct package for new code, and respects per-package build/test commands. Supports Turborepo, Nx, Lerna, and pnpm workspaces.",
+    tags: ["monorepo", "architecture", "packages", "boundaries"],
+    categories: ["workflow"],
+    stars: 367,
+    installs: 2900,
+    updated: "2026-03-11",
+    install: 'agentpkg install megarepo/monorepo-nav',
+    snippet: `# Add to CLAUDE.md:
+
+## Monorepo Structure
+packages:
+  @app/web:
+    owner: frontend-team
+    deps: [@app/ui, @app/api-client]
+    test: "vitest"
+  @app/api:
+    owner: backend-team
+    deps: [@app/db, @app/shared]
+    test: "jest"
+
+Rules:
+- Never import across boundaries
+- Run only affected package tests`
+  },
+  {
+    name: "error-explainer",
+    title: "Error Explainer",
+    author: "debugpro",
+    type: "skill",
+    desc: "Skill that catches error output from failed commands and provides clear, contextual explanations with specific fix steps. Covers Node.js, Python, Rust, Go, and shell errors.",
+    longDesc: "When a command fails, Error Explainer intercepts the error output and provides: a plain-English explanation of what went wrong, the root cause (not just the symptom), specific fix steps in order of likelihood, and links to relevant documentation. Covers: Node.js module errors, Python tracebacks, Rust compiler errors, Go build failures, and common shell/git errors. Learns from project context to give more specific suggestions.",
+    tags: ["debugging", "errors", "troubleshooting", "dx"],
+    categories: ["workflow"],
+    stars: 1089,
+    installs: 14500,
+    updated: "2026-03-21",
+    install: 'agentpkg install debugpro/error-explainer',
+    snippet: `# /explain-error skill
+When a command fails:
+1. Capture stderr output
+2. Identify error type:
+   - Module not found → check imports
+   - Type error → check signatures
+   - Permission denied → check fs perms
+3. Read surrounding code for context
+4. Output:
+   **What happened:** plain English
+   **Root cause:** specific reason
+   **Fix:** step-by-step commands`
+  }
+];
+
+// ── State ──
+let activeTypeFilter = 'all';
+let activeCatFilter = null;
+let searchQuery = '';
+let sortBy = 'popular';
+
+// ── DOM ──
+const grid = document.getElementById('skillGrid');
+const searchInput = document.getElementById('searchInput');
+const resultsInfo = document.getElementById('resultsInfo');
+const modalOverlay = document.getElementById('modalOverlay');
+const modal = document.getElementById('modal');
+const toast = document.getElementById('toast');
+
+// ── Init ──
+function init() {
+  updateStats();
+  renderGrid();
+  bindEvents();
+}
+
+function updateStats() {
+  const authors = new Set(SKILLS.map(s => s.author));
+  const totalInstalls = SKILLS.reduce((sum, s) => sum + s.installs, 0);
+  animateCounter('totalSkills', SKILLS.length);
+  animateCounter('totalAuthors', authors.size);
+  animateCounter('totalInstalls', totalInstalls, true);
+}
+
+function animateCounter(id, target, abbreviated = false) {
+  const el = document.getElementById(id);
+  const duration = 800;
+  const start = performance.now();
+  function step(now) {
+    const progress = Math.min((now - start) / duration, 1);
+    const eased = 1 - Math.pow(1 - progress, 3);
+    const current = Math.round(target * eased);
+    el.textContent = abbreviated ? abbreviate(current) : current.toLocaleString();
+    if (progress < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
+function abbreviate(n) {
+  if (n >= 1000) return (n / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
+  return n.toString();
+}
+
+function getFiltered() {
+  let results = [...SKILLS];
+
+  if (searchQuery) {
+    const q = searchQuery.toLowerCase();
+    results = results.filter(s =>
+      s.title.toLowerCase().includes(q) ||
+      s.name.toLowerCase().includes(q) ||
+      s.desc.toLowerCase().includes(q) ||
+      s.author.toLowerCase().includes(q) ||
+      s.tags.some(t => t.includes(q))
+    );
+  }
+
+  if (activeTypeFilter !== 'all') {
+    results = results.filter(s => s.type === activeTypeFilter);
+  }
+
+  if (activeCatFilter) {
+    results = results.filter(s => s.categories.includes(activeCatFilter));
+  }
+
+  switch (sortBy) {
+    case 'popular': results.sort((a, b) => b.installs - a.installs); break;
+    case 'newest': results.sort((a, b) => b.updated.localeCompare(a.updated)); break;
+    case 'stars': results.sort((a, b) => b.stars - a.stars); break;
+    case 'name': results.sort((a, b) => a.title.localeCompare(b.title)); break;
+  }
+
+  return results;
+}
+
+function renderGrid() {
+  const filtered = getFiltered();
+  resultsInfo.textContent = `${filtered.length} skill${filtered.length !== 1 ? 's' : ''} found`;
+
+  if (filtered.length === 0) {
+    grid.innerHTML = `
+      <div class="no-results" style="grid-column: 1 / -1;">
+        <span class="icon">🔎</span>
+        <h3>No skills match your search</h3>
+        <p>Try different keywords or clear your filters</p>
+      </div>`;
+    return;
+  }
+
+  grid.innerHTML = filtered.map((s, i) => `
+    <article class="card" data-idx="${SKILLS.indexOf(s)}" style="animation: fadeIn 0.3s ${i * 0.04}s both;">
+      <div class="card-header">
+        <div>
+          <div class="card-title">${s.title}</div>
+          <div class="card-author">by <a href="#">${s.author}</a></div>
+        </div>
+        <span class="card-type ${s.type}">${s.type}</span>
+      </div>
+      <p class="card-desc">${s.desc}</p>
+      <div class="card-tags">
+        ${s.tags.slice(0, 4).map(t => `<span class="tag">${t}</span>`).join('')}
+      </div>
+      <div class="card-footer">
+        <div class="card-stats">
+          <span class="card-stat"><span class="icon">⭐</span> ${abbreviate(s.stars)}</span>
+          <span class="card-stat"><span class="icon">⬇</span> ${abbreviate(s.installs)}</span>
+          <span class="card-stat">${s.updated}</span>
+        </div>
+        <button class="install-btn" onclick="event.stopPropagation(); copyInstall(${SKILLS.indexOf(s)})">Install</button>
+      </div>
+    </article>
+  `).join('');
+}
+
+function openModal(idx) {
+  const s = SKILLS[idx];
+  modal.innerHTML = `
+    <div class="modal-header">
+      <div>
+        <div class="modal-title">${s.title} <span class="card-type ${s.type}" style="font-size:0.6rem; vertical-align:middle; margin-left:0.5rem;">${s.type}</span></div>
+        <div class="modal-subtitle">by ${s.author} · updated ${s.updated}</div>
+      </div>
+      <button class="modal-close" onclick="closeModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p class="modal-desc">${s.longDesc}</p>
+
+      <div class="modal-section">
+        <div class="modal-section-title">Install</div>
+        <div class="code-block">
+          <button class="copy-btn" onclick="copyText('${s.install}')">Copy</button>
+          <span class="val">$</span> ${s.install}
+        </div>
+      </div>
+
+      <div class="modal-section">
+        <div class="modal-section-title">Configuration</div>
+        <div class="code-block">
+          <button class="copy-btn" onclick="copySnippet(${idx})">Copy</button>
+${escapeHtml(s.snippet)}</div>
+      </div>
+
+      <div class="modal-section">
+        <div class="modal-section-title">Stats</div>
+        <div class="card-stats" style="font-size:0.85rem;">
+          <span class="card-stat"><span class="icon">⭐</span> ${s.stars.toLocaleString()} stars</span>
+          <span class="card-stat"><span class="icon">⬇</span> ${s.installs.toLocaleString()} installs</span>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <div class="modal-tags">
+        ${s.tags.map(t => `<span class="tag">${t}</span>`).join('')}
+      </div>
+      <button class="modal-install-btn" onclick="copyInstall(${idx})">⬇ Install Skill</button>
+    </div>
+  `;
+  modalOverlay.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal() {
+  modalOverlay.classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function escapeHtml(s) {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function copyInstall(idx) {
+  copyText(SKILLS[idx].install);
+}
+
+function copySnippet(idx) {
+  copyText(SKILLS[idx].snippet);
+}
+
+function copyText(text) {
+  navigator.clipboard.writeText(text).then(() => {
+    showToast('Copied to clipboard');
+  }).catch(() => {
+    showToast('Copy failed — check permissions');
+  });
+}
+
+function showToast(msg) {
+  toast.textContent = msg;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 2000);
+}
+
+function bindEvents() {
+  // Search
+  searchInput.addEventListener('input', (e) => {
+    searchQuery = e.target.value.trim();
+    renderGrid();
+  });
+
+  // Keyboard
+  document.addEventListener('keydown', (e) => {
+    if (e.key === '/' && document.activeElement !== searchInput) {
+      e.preventDefault();
+      searchInput.focus();
+    }
+    if (e.key === 'Escape') {
+      if (modalOverlay.classList.contains('open')) {
+        closeModal();
+      } else if (document.activeElement === searchInput) {
+        searchInput.value = '';
+        searchQuery = '';
+        searchInput.blur();
+        renderGrid();
+      }
+    }
+  });
+
+  // Type filters
+  document.getElementById('typeFilters').addEventListener('click', (e) => {
+    const btn = e.target.closest('.filter-btn');
+    if (!btn) return;
+    document.querySelectorAll('#typeFilters .filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    activeTypeFilter = btn.dataset.filter;
+    renderGrid();
+  });
+
+  // Category filters
+  document.getElementById('categoryFilters').addEventListener('click', (e) => {
+    const btn = e.target.closest('.filter-btn');
+    if (!btn) return;
+    if (btn.classList.contains('active')) {
+      btn.classList.remove('active');
+      activeCatFilter = null;
+    } else {
+      document.querySelectorAll('#categoryFilters .filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      activeCatFilter = btn.dataset.cat;
+    }
+    renderGrid();
+  });
+
+  // Sort
+  document.getElementById('sortSelect').addEventListener('change', (e) => {
+    sortBy = e.target.value;
+    renderGrid();
+  });
+
+  // Card clicks
+  grid.addEventListener('click', (e) => {
+    const card = e.target.closest('.card');
+    if (card && !e.target.closest('.install-btn')) {
+      openModal(parseInt(card.dataset.idx));
+    }
+  });
+
+  // Modal overlay click
+  modalOverlay.addEventListener('click', (e) => {
+    if (e.target === modalOverlay) closeModal();
+  });
+}
+
+init();
+</script>
+</body>
+</html>
